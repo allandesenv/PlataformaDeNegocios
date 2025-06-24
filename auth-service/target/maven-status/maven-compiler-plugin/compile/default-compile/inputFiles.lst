@@ -1,0 +1,10 @@
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/service/AuthServiceImpl.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/controller/AuthController.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/exception/EmailAlreadyExistsException.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/service/AuthService.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/AuthApplication.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/model/AuthResponse.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/model/User.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/repository/UserRepository.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/config/SecurityConfig.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/model/RegisterRequest.java

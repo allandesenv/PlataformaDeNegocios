@@ -1,0 +1,24 @@
+# Configurações específicas para o perfil 'test'
+spring:
+  datasource:
+    url: jdbc:h2:mem:testdb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE # H2 em memória
+    username: sa
+    password:
+    driver-class-name: org.h2.Driver
+  jpa:
+    hibernate:
+      ddl-auto: create-drop # Cria e destrói o schema para cada execução de teste
+    properties:
+      hibernate:
+        format_sql: true
+    show-sql: true
+  main:
+    banner-mode: off # Desliga o banner do Spring Boot nos testes para uma saída mais limpa
+
+logging:
+  level:
+    root: WARN
+    org.springframework: INFO
+    com.suaempresa.auth: INFO # Para ver logs da sua aplicação
+    org.hibernate.SQL: DEBUG # Para ver as queries SQL geradas pelo Hibernate
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE # Para ver os parâmetros das queries

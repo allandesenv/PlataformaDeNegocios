@@ -1,0 +1,4 @@
+/mnt/c/PlataformaDeNegocios/auth-service/src/test/java/com/suaempresa/auth/stepdefs/CucumberSpringConfiguration.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/test/java/com/suaempresa/auth/AuthApplicationTests.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/test/java/com/suaempresa/auth/stepdefs/UserRegistrationStepDefs.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/test/java/com/suaempresa/auth/support/CucumberSpringConfiguration.java

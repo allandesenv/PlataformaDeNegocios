@@ -1,0 +1,14 @@
+com/suaempresa/auth/repository/UserRepository.class
+com/suaempresa/auth/model/AuthResponse.class
+com/suaempresa/auth/exception/EmailAlreadyExistsException.class
+com/suaempresa/auth/controller/GlobalExceptionHandler.class
+com/suaempresa/auth/service/AuthServiceImpl.class
+com/suaempresa/auth/model/User.class
+com/suaempresa/auth/model/AuthResponse$AuthResponseBuilder.class
+com/suaempresa/auth/model/RegisterRequest$RegisterRequestBuilder.class
+com/suaempresa/auth/model/RegisterRequest.class
+com/suaempresa/auth/AuthApplication.class
+com/suaempresa/auth/model/User$UserBuilder.class
+com/suaempresa/auth/config/SecurityConfig.class
+com/suaempresa/auth/controller/AuthController.class
+com/suaempresa/auth/service/AuthService.class

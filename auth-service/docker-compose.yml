@@ -1,0 +1,33 @@
+version: '3.8' # Versão da sintaxe do Docker Compose
+
+services:
+  auth-service: # Nome do seu serviço de autenticação
+    build:
+      context: . # O contexto de construção é o diretório atual (auth-service/)
+      dockerfile: Dockerfile # O Dockerfile está neste diretório
+    ports:
+      - "8080:8080" # Mapeia a porta 8080 do host para a porta 8080 do contêiner
+    environment: # Variáveis de ambiente para o contêiner
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgresql:5432/authdb # Conecta ao serviço 'postgresql' na rede do Docker Compose
+      SPRING_DATASOURCE_USERNAME: user
+      SPRING_DATASOURCE_PASSWORD: password
+      SPRING_JPA_HIBERNATE_DDL_AUTO: update # Mantemos 'update' para desenvolvimento
+      APP_JWT_SECRET: UmSegredoMuitoForteParaJWTQueDeveSerGuardadoEmUmLocalSeguroEAlteradoEmProducao # Mesma do application.yml
+      APP_JWT_EXPIRATION_MS: 86400000
+    depends_on:
+      - postgresql # Garante que o PostgreSQL seja iniciado antes do auth-service
+
+  postgresql: # Nome do serviço do banco de dados PostgreSQL
+    image: postgres:15-alpine # Imagem oficial do PostgreSQL, versão 15, baseada em Alpine (leve)
+    ports:
+      - "5432:5432" # Mapeia a porta 5432 do host para a porta 5432 do contêiner
+    environment:
+      POSTGRES_DB: authdb # Nome do banco de dados
+      POSTGRES_USER: user # Usuário do banco de dados
+      POSTGRES_PASSWORD: password # Senha do banco de dados
+    volumes:
+      - pgdata:/var/lib/postgresql/data # Mapeia um volume para persistir os dados do banco
+      # - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql # Opcional: para scripts de inicialização de DB
+
+volumes:
+  pgdata: # Define o volume nomeado para persistência do PostgreSQL

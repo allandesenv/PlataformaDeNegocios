@@ -1,0 +1,4 @@
+com/suaempresa/auth/stepdefs/UserRegistrationStepDefs.class
+com/suaempresa/auth/AuthApplicationTests.class
+com/suaempresa/auth/stepdefs/CucumberSpringConfiguration.class
+com/suaempresa/auth/support/CucumberSpringConfiguration.class
