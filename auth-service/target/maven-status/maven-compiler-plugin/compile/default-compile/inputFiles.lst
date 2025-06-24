@@ -1,4 +1,5 @@
 /mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/service/AuthServiceImpl.java
+/mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/model/LoginRequest.java
 /mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/controller/AuthController.java
 /mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/exception/EmailAlreadyExistsException.java
 /mnt/c/PlataformaDeNegocios/auth-service/src/main/java/com/suaempresa/auth/service/AuthService.java

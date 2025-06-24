@@ -1,0 +1,49 @@
+# Ignorar diretórios de build do Maven
+target/
+!/auth-service/target/classes/application.yml
+!/auth-service/target/test-classes/application-test.yml
+!/auth-service/target/cucumber-reports/
+
+# Arquivos de IDEs (IntelliJ IDEA, VS Code)
+.idea/
+*.iml
+*.iws
+*.ipr
+.vscode/
+
+# Arquivos de sistema operacional
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Arquivos de configuração específicos do ambiente
+*.properties
+*.yml
+*.env
+.env
+!src/main/resources/application.yml
+!src/main/resources/application-dev.yml
+!src/main/resources/application-prod.yml
+!src/test/resources/application-test.yml
+
+# Ignorar o Docker Compose local para cada serviço,
+# se você for ter um docker-compose.yml na raiz do monorepo para orquestrar tudo.
+# Se o docker-compose.yml ficar DENTRO de cada módulo, você vai querer mantê-lo.
+# Por enquanto, vamos ignorar apenas os arquivos que não deveriam subir.
+
+# Ignorar arquivos gerados pelo Docker Desktop ou WSL
+.docker/
+.wsl/
+
+# Arquivos de dependências de wrapper Maven/Gradle (se usar)
+.mvn/wrapper/maven-wrapper.jar
+.gradle/
+build/
+
+# Outros arquivos temporários
+*.tmp
+*.bak
+*~
