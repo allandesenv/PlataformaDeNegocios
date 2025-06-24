@@ -1,6 +1,6 @@
 package com.suaempresa.auth.stepdefs;
 
-import io.cucumber.java.Before; // Adicione este import
+import io.cucumber.java.Before;
 import io.cucumber.java.en.Given;
 import io.cucumber.java.en.When;
 import io.cucumber.java.en.And;
@@ -10,8 +10,10 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.beans.factory.annotation.Autowired;
 import com.suaempresa.auth.model.RegisterRequest;
-import com.suaempresa.auth.repository.UserRepository;
+import com.suaempresa.auth.model.LoginRequest; // NOVO IMPORT
 import com.suaempresa.auth.model.User;
+import com.suaempresa.auth.repository.UserRepository;
+import org.springframework.security.crypto.password.PasswordEncoder; // NOVO IMPORT
 import org.springframework.web.client.HttpClientErrorException;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -24,27 +26,21 @@ public class UserRegistrationStepDefs {
     private TestRestTemplate restTemplate;
     @Autowired
     private UserRepository userRepository;
+    @Autowired // Injetar PasswordEncoder para registrar usuários nos testes
+    private PasswordEncoder passwordEncoder;
 
     private RegisterRequest registerRequest;
+    private LoginRequest loginRequest; // Para requisições de login
     private ResponseEntity<String> response;
 
-    // NOVO HOOK: Limpa o banco de dados antes de CADA cenário
     @Before
     public void cleanUpDatabase() {
-        userRepository.deleteAll(); // Voltar para deleteAll() ou usar TRUNCATE TABLE diretamente para H2
-        // Ou se preferir usar SQL nativo para limpeza super rápida no H2:
-        // userRepository.getEntityManager().createNativeQuery("TRUNCATE TABLE users RESTART IDENTITY;").executeUpdate();
+        userRepository.deleteAll(); // Limpeza do DB antes de cada cenário
     }
-
-    // REMOVA ESTE MÉTODO - A limpeza será feita no @Before hook
-    // @Given("que eu limpo os dados de teste de usuário")
-    // public void queEuLimpouOsDadosDeTesteDeUsuario() {
-    //     userRepository.deleteAllInBatch();
-    // }
 
     @Given("que eu estou na tela de cadastro")
     public void queEuEstouNaTelaDeCadastro() {
-        // Nenhuma ação específica para a UI no backend.
+        // Nada a fazer aqui
     }
 
     @When("eu preencho o e-mail {string}, a senha {string} e confirmo a senha")
@@ -64,6 +60,12 @@ public class UserRegistrationStepDefs {
             } catch (HttpClientErrorException e) {
                 response = new ResponseEntity<>(e.getResponseBodyAsString(), e.getStatusCode());
             }
+        } else if ("Entrar".equals(action)) { // Lógica para o botão de Login
+            try {
+                response = restTemplate.postForEntity("/api/auth/login", loginRequest, String.class);
+            } catch (HttpClientErrorException e) {
+                response = new ResponseEntity<>(e.getResponseBodyAsString(), e.getStatusCode());
+            }
         }
     }
 
@@ -78,23 +80,70 @@ public class UserRegistrationStepDefs {
 
     @And("eu devo ser redirecionado para a tela de login")
     public void euDevoSerRedirecionadoParaATelaDeLogin() {
-        // Nada a fazer aqui se já passamos no 201 Created.
+        // Asserções para redirecionamento lógico da API.
+        // Já verificamos o status 201 no passo anterior.
     }
 
     @Given("que o e-mail {string} já está cadastrado")
     public void queOE_mailJáEstáCadastrado(String email) {
-        // Este passo agora apenas prepara o usuário, a limpeza já foi feita no @Before
         userRepository.save(User.builder()
                 .email(email)
-                .password("senha_hashed_qualquer")
+                .password(passwordEncoder.encode("senha_hashed_qualquer")) // Criptografa a senha para o DB
                 .googleAuth(false)
                 .build());
     }
 
     @Then("eu devo receber uma mensagem de erro {string}")
     public void euDevoReceberUmaMensagemDeErro(String errorMessage) {
-        assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        // Para "Credenciais inválidas" ou "As senhas não coincidem", o status é BAD_REQUEST (400)
+        // Para "E-mail já cadastrado", o status é CONFLICT (409)
+        if (errorMessage.equals("E-mail já cadastrado")) {
+            assertEquals(HttpStatus.CONFLICT, response.getStatusCode());
+        } else if (errorMessage.equals("Credenciais inválidas") || errorMessage.equals("As senhas não coincidem.")) {
+            assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
+        } else {
+            // Caso de erro inesperado, apenas verifica se contém a mensagem
+            assertTrue(response.getBody().contains(errorMessage), "A mensagem de erro esperada não foi encontrada. Resposta: " + response.getBody());
+        }
         assertNotNull(response.getBody(), "O corpo da resposta de erro não deve ser nulo.");
         assertTrue(response.getBody().contains(errorMessage), "A mensagem de erro esperada não foi encontrada. Resposta: " + response.getBody());
+    }
+
+    // NOVOS PASSOS PARA LOGIN:
+
+    @Given("que o e-mail {string} e a senha {string} estão cadastrados")
+    public void queOE_mailEASenhaEstaoCadastrados(String email, String password) {
+        userRepository.save(User.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password)) // Criptografa a senha para o DB
+                .googleAuth(false)
+                .build());
+    }
+
+    @Given("que nenhum usuário com o e-mail {string} está cadastrado")
+    public void queNenhumUsuarioComOE_mailEstaCadastrado(String email) {
+        // O @Before limpa o DB, então apenas garantimos que não haja usuários.
+        // Nenhuma ação adicional é necessária aqui além da limpeza do cenário.
+    }
+
+    @When("eu preencho o e-mail {string} e a senha {string}")
+    public void euPreenchoOE_mailEASenha(String email, String password) {
+        this.loginRequest = LoginRequest.builder()
+                .email(email)
+                .password(password)
+                .build();
+    }
+
+    @Then("eu devo ser logado com sucesso")
+    public void euDevoSerLogadoComSucesso() {
+        assertEquals(HttpStatus.OK, response.getStatusCode()); // Login bem-sucedido retorna 200 OK
+        assertNotNull(response.getBody(), "Corpo da resposta não deve ser nulo.");
+        assertTrue(response.getBody().contains("temp-token-login-sucesso"), "Token de login esperado na resposta."); // Verifica o token temporário
+    }
+
+    @And("eu devo ser redirecionado para o dashboard principal")
+    public void euDevoSerRedirecionadoParaODashboardPrincipal() {
+        // Similar ao cadastro, verificamos o status 200 OK.
+        // Em um frontend real, isso implicaria em uma rota de redirecionamento.
     }
 }

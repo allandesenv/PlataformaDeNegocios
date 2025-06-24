@@ -1,18 +1,21 @@
 package com.suaempresa.auth.controller;
 
-import com.suaempresa.auth.exception.EmailAlreadyExistsException; // Importe a exceção
+import com.suaempresa.auth.exception.EmailAlreadyExistsException;
 import com.suaempresa.auth.model.AuthResponse;
+import com.suaempresa.auth.model.LoginRequest; // NOVO IMPORT
 import com.suaempresa.auth.model.RegisterRequest;
 import com.suaempresa.auth.service.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError; // Para MethodArgumentNotValidException
+import org.springframework.web.bind.MethodArgumentNotValidException; // Para tratar erros de validação
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.ControllerAdvice; // NOVO IMPORT
-import org.springframework.web.bind.annotation.ExceptionHandler; // NOVO IMPORT
+import org.springframework.web.bind.annotation.ControllerAdvice;
+import org.springframework.web.bind.annotation.ExceptionHandler;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -28,22 +31,22 @@ public class AuthController {
 
     @PostMapping("/register")
     public ResponseEntity<AuthResponse> register(@Valid @RequestBody RegisterRequest request) {
-        // Lógica de validação de senhas no controller, como já existe no seu código
         if (!request.getPassword().equals(request.getConfirmPassword())) {
-            // Este caso deve retornar BAD_REQUEST (400), não CONFLICT (409)
-            // Podemos criar um DTO de erro mais genérico para isso ou usar um Map
-            Map<String, String> errorResponse = new HashMap<>();
-            errorResponse.put("message", "As senhas não coincidem.");
-            // Poderíamos retornar um ResponseEntity<Map<String, String>>
-            return ResponseEntity.badRequest().body(AuthResponse.builder().email(request.getEmail()).token(null).build());
+            // Este caso deve retornar BAD_REQUEST (400)
+            // Lançar IllegalArgumentException para ser capturada pelo GlobalExceptionHandler
+            throw new IllegalArgumentException("As senhas não coincidem.");
         }
-
         AuthResponse response = authService.registerUser(request);
         return new ResponseEntity<>(response, HttpStatus.CREATED);
     }
+
+    @PostMapping("/login") // NOVO ENDPOINT DE LOGIN
+    public ResponseEntity<AuthResponse> login(@Valid @RequestBody LoginRequest request) {
+        AuthResponse response = authService.loginUser(request);
+        return ResponseEntity.ok(response); // Retorna 200 OK com o token (ou temp-token)
+    }
 }
 
-// Adicione esta nova classe para tratar exceções globalmente
 @ControllerAdvice
 class GlobalExceptionHandler {
 
@@ -54,16 +57,21 @@ class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.CONFLICT); // Retorna 409 CONFLICT
     }
 
-    // Você pode adicionar mais @ExceptionHandler para outras exceções comuns, ex:
-    // @ExceptionHandler(MethodArgumentNotValidException.class) para erros de @Valid
-    // @ExceptionHandler(IllegalArgumentException.class) para senhas que não coincidem (se não for tratada no controller)
-    // public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
-    //     Map<String, String> errors = new HashMap<>();
-    //     ex.getBindingResult().getAllErrors().forEach((error) -> {
-    //         String fieldName = ((FieldError) error).getField();
-    //         String errorMessage = error.getDefaultMessage();
-    //         errors.put(fieldName, errorMessage);
-    //     });
-    //     return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
-    // }
+    @ExceptionHandler(IllegalArgumentException.class) // Para "As senhas não coincidem" ou "Credenciais inválidas"
+    public ResponseEntity<Map<String, String>> handleIllegalArgumentException(IllegalArgumentException ex) {
+        Map<String, String> errorResponse = new HashMap<>();
+        errorResponse.put("message", ex.getMessage());
+        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST); // Retorna 400 BAD REQUEST
+    }
+
+    @ExceptionHandler(MethodArgumentNotValidException.class) // Para erros de validação (@Valid)
+    public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
+        Map<String, String> errors = new HashMap<>();
+        ex.getBindingResult().getAllErrors().forEach((error) -> {
+            String fieldName = ((FieldError) error).getField();
+            String errorMessage = error.getDefaultMessage();
+            errors.put(fieldName, errorMessage);
+        });
+        return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST); // Retorna 400 BAD REQUEST
+    }
 }
